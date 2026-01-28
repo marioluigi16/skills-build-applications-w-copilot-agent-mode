@@ -19,6 +19,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
 import os
+import os
 
 router = DefaultRouter()
 router.register(r'users', views.UserViewSet, basename='user')
@@ -27,8 +28,23 @@ router.register(r'activities', views.ActivityViewSet, basename='activity')
 router.register(r'workouts', views.WorkoutViewSet, basename='workout')
 router.register(r'leaderboard', views.LeaderboardViewSet, basename='leaderboard')
 
+
+def custom_api_root(request):
+    codespace_name = os.environ.get('CODESPACE_NAME')
+    if codespace_name:
+        base_url = f"https://{codespace_name}-8000.app.github.dev/api/"
+    else:
+        base_url = request.build_absolute_uri('/api/')
+    return JsonResponse({
+        'activities': f'{base_url}activities/',
+        'users': f'{base_url}users/',
+        'teams': f'{base_url}teams/',
+        'leaderboard': f'{base_url}leaderboard/',
+        'workouts': f'{base_url}workouts/',
+    })
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
-    path('', views.api_root, name='api-root'),
+    path('', custom_api_root, name='api-root'),
 ]
